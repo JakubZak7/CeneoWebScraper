@@ -1,5 +1,9 @@
 {% extends "base.html" %}
-
-    {% block content %}
-
-    {% endblock %}
+{% block title %} Pobieranie opinii o produkcie {% endblock %}
+{% block content %}
+    <form method="POST" action="{{url_for('extract')}}">
+        <label for ="product_id">ID produktu:</label>
+        <input type="text" id="product_id" name="product_id" required>
+        <button type="submit">Pobierz opinie</button>
+    </form>
+{% endblock %}

@@ -1,13 +1,54 @@
 from app import app
-from flask import render_template
+import os
+import json
+import requests
+from bs4 import BeautifulSoup
+from flask import render_template,request,redirect,url_for
+from config import headers
+from app import utils
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
 @app.route('/extract')
-def extract():
+def display_form():
     return render_template("extract.html")
+
+@app.route("/extract",methods=['POST'])
+def extract():
+    product_id = request.form.get('product_id')
+    next_page = (f"https://www.ceneo.pl/{product_id}#tab=reviews")
+    all_opinions = []
+    while next_page:
+        print(next_page)
+        response = requests.get(next_page,headers=headers)
+        if response.status_code == 200:
+            page_dom = BeautifulSoup(response.text, "html.parser")
+            opinions = page_dom.select("div.js_product-review:not(.user-post--highlight)")
+            for opinion in opinions:
+                single_opinion = {
+                    key: utils.extract_feature(opinion,*value)
+                    for key, value in utils.selectors.items()
+                }
+                all_opinions.append(single_opinion)
+            try:
+                next_page = "https://www.ceneo.pl" + extract(page_dom,"a.pagination__next","href")
+            except TypeError:
+                next_page = None
+                print("Brak kolejnej strony.")
+        else:
+            print(f"{response.status_code}")
+    if not os.path.exists("./app/data"):
+        os.mkdir("./app/data")
+    
+    if not os.path.exists("./app/data/opinions"):
+        os.mkdir("./app/data/opinions")
+        
+    with open (f"./app/data/opinions/{product_id}.json","w",encoding="utf-8") as file:
+        json.dump(all_opinions,file,ensure_ascii=False,indent=4)
+        
+    return redirect(url_for('product', product_id=product_id))
 
 @app.route('/products')
 def products():
@@ -17,6 +58,6 @@ def products():
 def author():
     return render_template("author.html")
 
-@app.route('/products/<product_id>')
+@app.route('/product/<product_id>')
 def product(product_id):
-    return render_template("index.html",product_id=product_id)
+    return render_template("product.html",product_id=product_id)
