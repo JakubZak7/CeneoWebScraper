@@ -1,5 +1,19 @@
 {% extends "base.html" %}
-{% block title %} {{product_id}} {% endblock %}
+{% block title %} {{product_id}} - {{product_name}} {% endblock %}
 {% block content %}
+    {{opinions|safe}}
+{% block script %}
+<script>
+    // document.addEventListener("DOMContentLoaded", function() {
+    //     let table = document.querySelector("table.display");
+    //     if (table) {
+    //         $(table).DataTable();
+    //     }
+    // });
 
+    let table = new DataTable('#opinions', {
+        // opinions
+    });
+</script>
+{% endblock %}
 {% endblock %}
