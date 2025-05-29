@@ -12,28 +12,26 @@
     <script src="https://cdn.datatables.net/2.0.7/js/dataTables.min.js"></script>    
     <title>Ceneo Web Scraper</title>
 </head>
-<body>
+<body id= "body">
     <header class="container sticky-top text-center">
         <h1>Ceneo Web Scraper</h1>
-        <h2>{% block title %} {% endblock %}</h2>
     </header>
     <section class="container">
-        <div class = "row">
             <div class = "col-3">
                 <ul>
-                    <li><a href="{{url_for('index')}}">Strona Główna</a></li>
-                    <li><a href="{{url_for('display_form')}}">Ekstrakcja opinii</a></li>
-                    <li><a href="{{url_for('products')}}">Lista produktów</a></li>
-                    <li><a href="{{url_for('author')}}">O autorze</a></li>
+                <li><a href="{{ url_for('index') }}"><i class="bi bi-house-door"></i> Strona Główna</a></li>
+                <li><a href="{{ url_for('display_form') }}"><i class="bi bi-file-earmark-text"></i> Ekstrakcja opinii</a></li>
+                <li><a href="{{ url_for('products') }}"><i class="bi bi-list"></i> Lista produktów</a></li>
+                <li><a href="{{ url_for('author') }}"><i class="bi bi-person"></i> O autorze</a></li>
                 </ul>
             </div>
-            <div class = "col-9">
+           <div class="col-9 d-flex flex-column align-items-center justify-content-center mx-auto">
+            <h2 class="mb-4">{% block title %} {% endblock %}</h2>
             {% block content %}
             {% endblock %}
             </div>
-        </div>
     </section>
-    <footer class="container stikcy-bottom text-center">
+    <footer class="container sticky-bottom text-center">
         <p>&copy; Jakub Żak, Uniwersytet Ekonomiczny w Krakowie</p>
     </footer>
     {% block script %}{% endblock %}

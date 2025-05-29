@@ -2,11 +2,15 @@
 {% block title %} Pobieranie opinii o produkcie {% endblock %}
 {% block content %}
     {% if error is defined %}
-        <p>{{error}}</p>
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
     {% endif %}
-    <form method="POST" action="{{url_for('extract')}}">
-        <label for ="product_id">ID produktu:</label>
-        <input type="text" id="product_id" name="product_id" required>
-        <button type="submit">Pobierz opinie</button>
+    <form method="POST" action="{{ url_for('extract') }}" class="w-50 mx-auto mt-4">
+        <div class="mb-3">
+            <label for="product_id" class="form-label">ID produktu:</label>
+            <input type="text" id="product_id" name="product_id" class="form-control" placeholder="Wprowadź ID produktu" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Pobierz opinie</button>
     </form>
 {% endblock %}
