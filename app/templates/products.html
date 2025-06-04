@@ -1,5 +1,16 @@
 {% extends "base.html" %}
 {% block title %} {% endblock %}
 {% block content %}
-
+<ul class="list-group w-75 mx-auto">
+    {% for product in products %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a type="button" class="badge bg-primary rounded-pill btn btn-link text-decoration-none" href="{{url_for('product', product_id=product.product_id, product_name=product.product_name)}}">{{ product.product_id }}</a>
+            <span class="mx-2">{{ product.product_name }}</span>
+            <span class="badge bg-primary rounded-pill mx-2">{{ product.opinions_count }}</span>
+            <span class="badge bg-success rounded-pill mx-2">{{ product.pros_count }}</span>
+            <span class="badge bg-danger rounded-pill mx-2">{{ product.cons_count }}</span>
+            <span class="badge bg-warning rounded-pill mx-2">{{ product.avg_stars|round(2) }}</span>
+        </li>
+    {% endfor %}
+</ul>
 {% endblock %}
