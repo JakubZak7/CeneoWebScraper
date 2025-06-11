@@ -8,9 +8,10 @@ import requests
 import pandas as pd
 from bs4 import BeautifulSoup
 from matplotlib import pyplot as plt
-from flask import render_template,request,redirect,url_for
+from flask import render_template,request,redirect,url_for,send_file
 from config import headers
 from app import utils
+import io
 
 @app.route('/')
 def index():
@@ -84,7 +85,7 @@ def extract():
         os.mkdir("./app/data/products")
     with open (f"./app/data/products/{product_id}.json","w",encoding="utf-8") as file:
         json.dump(stats,file,ensure_ascii=False,indent=4)
-    return redirect(url_for('product', product_id=product_id, product_name=product_name))
+    return redirect(url_for('product', product_id=product_id, product_name = product_name))
 
 @app.route('/products')
 def products():
@@ -104,8 +105,16 @@ def author():
 def product(product_id):
     product_name = request.args.get('product_name') 
     opinions = pd.read_json(f"./app/data/opinions/{product_id}.json")
-    return render_template("product.html",product_id=product_id, product_name=product_name, opinions=opinions.to_html(classes="display",table_id="opinions"))
-
+    
+    # Konwersja DataFrame na listę słowników
+    opinions_list = opinions.to_dict(orient="records")
+    
+    return render_template(
+        "product.html",
+        product_id=product_id,
+        product_name=product_name,
+        opinions=opinions_list 
+    )
 
 @app.route('/charts/<product_id>')
 def charts(product_id):
@@ -120,28 +129,57 @@ def charts(product_id):
     recommendations.plot.pie(
         label="",
         autopct="%.1f%%",
-        figsize=(7, 7),
         title="Rozkład rekomendacji o produkcie",
         labels=["Nie polecam", "Polecam", "Brak rekomendacji"],
         legend=True,
         colors=["Red", "Green", "LightGray"],
-        fontsize=20,
     )
     plt.savefig(f"./app/static/images/charts/{stats['product_id']}_pie.png")
     plt.close()
     
 
-    recommendations.plot.bar(
+    opinions = pd.read_json(f"./app/data/opinions/{product_id}.json")
+    star_counts = opinions['stars'].value_counts().sort_index()
+    star_counts.plot.bar(
         figsize=(10, 6),
-        title="Liczba opinii dla każdej rekomendacji",
-        color=["Red", "Green", "LightGray"],
+        title="Liczba opinii dla każdej liczby gwiazdek",
+        color="Gold",
         fontsize=12,
     )
     plt.ylabel("Liczba opinii")
-    plt.xlabel("Rekomendacje")
+    plt.xlabel("Liczba gwiazdek")
     plt.xticks(rotation=0)
-    plt.savefig(f"./app/static/images/charts/{stats['product_id']}_bar.png")
+    plt.savefig(f"./app/static/images/charts/{stats['product_id']}_stars_bar.png")
     plt.close()
 
-    return render_template("charts.html",product_id=product_id, product_name=stats['product_name'])
+    return render_template("charts.html", product_id=product_id, product_name=stats['product_name'])
 
+@app.route('/download/<product_id>/<file_type>')
+def download(product_id, file_type):
+    path = f"./data/opinions/{product_id}.json"
+    if file_type == "json":
+        return send_file(path,as_attachment=True)
+    elif file_type == "csv":
+        path= f"./data/opinions/{product_id}.csv"
+        df = pd.read_json(f"./app/data/opinions/{product_id}.json")
+        buffer = io.StringIO()
+        df.to_csv(buffer, index=False, encoding='utf-8')
+        buffer.seek(0)
+        return send_file(
+            io.BytesIO(buffer.getvalue().encode('utf-8')),
+            mimetype='text/csv',
+            as_attachment=True,
+            download_name=f"{product_id}.csv"
+        )
+    elif file_type == "xlsx":
+        buffer = io.BytesIO()
+        df = pd.read_json(f"./app/data/opinions/{product_id}.json")
+        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='Opinions')
+        buffer.seek(0)
+        return send_file(
+            buffer,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=f"{product_id}.xlsx"
+        )
