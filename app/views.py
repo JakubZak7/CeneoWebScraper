@@ -122,12 +122,25 @@ def charts(product_id):
         autopct="%.1f%%",
         figsize=(7, 7),
         title="Rozkład rekomendacji o produkcie",
-        labels=["Nie polecam", "Polecam", "Nie mam zdania"],
+        labels=["Nie polecam", "Polecam", "Brak rekomendacji"],
         legend=True,
         colors=["Red", "Green", "LightGray"],
         fontsize=20,
     )
     plt.savefig(f"./app/static/images/charts/{stats['product_id']}_pie.png")
+    plt.close()
+    
+
+    recommendations.plot.bar(
+        figsize=(10, 6),
+        title="Liczba opinii dla każdej rekomendacji",
+        color=["Red", "Green", "LightGray"],
+        fontsize=12,
+    )
+    plt.ylabel("Liczba opinii")
+    plt.xlabel("Rekomendacje")
+    plt.xticks(rotation=0)
+    plt.savefig(f"./app/static/images/charts/{stats['product_id']}_bar.png")
     plt.close()
 
     return render_template("charts.html",product_id=product_id, product_name=stats['product_name'])
